@@ -17,31 +17,34 @@ input, select { padding:6px; }
 .bigTime { font-size:2rem; font-weight:bold; }
 .bigTime.late { color:#c00000; }
 .smallTime { font-size:1rem; color:#444; }
-.zona-wrapper { position:relative; display:inline-block; }
-#zonaSuggest { position:absolute; top:38px; left:0; right:0; background:white; border:1px solid #ccc; border-radius:6px; max-height:160px; overflow-y:auto; display:none; z-index:2000; }
-#zonaSuggest div { padding:8px; cursor:pointer; }
-#zonaSuggest div:hover { background:#eee; }
 
-/* MODAL ZONA */
+/* MODAL */
 #zonaModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:999; }
 #zonaModalContent { background:white; padding:20px; border-radius:10px; width:400px; max-width:90%; text-align:center; }
 #zonaModal input { width:80%; font-size:18px; padding:6px; }
 
-/* TECLADO TÁCTIL */
+/* 🔴 AUTOCOMPLETE MODAL FIJO */
+#modalZonaSuggest {
+  max-height:160px;
+  overflow-y:auto;
+  border:1px solid #ccc;
+  border-radius:6px;
+  margin-top:6px;
+  text-align:left;
+}
+#modalZonaSuggest div { padding:8px; cursor:pointer; }
+#modalZonaSuggest div:hover { background:#eee; }
+
+/* TECLADO */
 .keyboard { margin-top:10px; }
 .keyboard div { display:flex; justify-content:center; margin-bottom:5px; }
 .keyboard button { font-size:18px; padding:12px 16px; margin:2px; border-radius:8px; border:none; }
 
 /* PANEL ZONAS */
-#zonaList {
-  max-height: 300px;   /* altura máxima para scroll */
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  padding: 6px;
-  margin-bottom: 10px;
-}
+#zonaList { max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:6px; margin-bottom:10px; }
 </style>
 </head>
+
 <body>
 
 <h1>⏱ Control de Repartidores</h1>
@@ -75,7 +78,7 @@ input, select { padding:6px; }
 
 <div id="logs" class="panel"></div>
 
-<!-- MODAL ZONA -->
+<!-- MODAL -->
 <div id="zonaModal">
   <div id="zonaModalContent">
     <h3>Selecciona la zona</h3>
@@ -94,50 +97,50 @@ const LS_KEY="pizz_repartidores_modal_v7";
 const PIN="26";
 const AVG_LAST=30;
 const KEEP_DAYS=7;
+
+/* ZONAS */
 const ZONAS_PREDEFINIDAS = [
-  "A GANDARA", "A GANDARA 49", "ALVARIN", "ALVARIN 42", "ALVARIN 42 A",
-  "AMIEIROLONGO", "AMIEIROLONGO 45", "ANGOAL", "ANGOAL 8", "ARROTEA",
-
-  "ARROTEA 9A", "ARROTEA 12A", "ARROTEA 17A", "ARROTEA 25", "ARROTEA 49",
-  "BALOUTAS", "BALOUTAS 52", "BOSENDE", "BOSENDE 9", "BUDIÑO",
-
-  "BUDIÑO 1D", "BUDIÑO 7 EIRIS", "BUDIÑO LA CRUZ 31A", "CAMIÑO BUDIELA", "CAMIÑO BUDIELA 10",
-  "CAMIÑO DA BARXA", "CAMIÑO DA BARXA 5", "CAMIÑO DA BARXA 7", "CAMIÑO DE ROSALINO", "CAMIÑO DE ROSALINO 16",
-
-  "CAMIÑO DO PINAL", "CAMIÑO DO PINAL 32", "CAMIÑO DO QUINTEIRO", "CAMIÑO DO QUINTEIRO 2", "CAMIÑO DO ROXO",
-  "CAMIÑO DO ROXO 25", "CAMIÑO SANTA MARINA", "CAMIÑO SANTA MARINA 5", "CAMIÑO VELLO DE SANTIAGO", "CAMIÑO VELLO DE SANTIAGO 24",
-
-  "CARBON", "CARBON 12", "CARRACIDO", "CARRACIDO 27", "CARRETERA REDONDELA",
-  "CARRETERA REDONDELA 2", "CARRETERA REDONDELA 19", "CARRETERA REDONDELA 161", "CARRETERA SANGUIÑEDA", "CARRETERA SANGUIÑEDA 1",
-
-  "CARRETERA SANGUIÑEDA 6", "CASAL", "CASAL 14 BUDIÑO", "CONTRASTO", "CONTRASTO 1",
-  "CONTRASTO 46", "CONTRASTO 532", "COVELO", "COVELO 1", "COVELO 58",
-
-  "CRISTO DO AGRO", "CRISTO DO AGRO 13", "EIDOS", "EIDOS 47", "EIDOS DO MEDIO",
-  "EIDOS DO MEDIO 2", "LUGAR A LEVADA", "LUGAR A LEVADA 22", "MALLADOURA", "MALLADOURA 25",
-
-  "MOSENDE", "MOSENDE 1", "MOSENDE 7", "MOSENDE 16", "NOVAL",
-  "NOVAL 3", "O CASTRO", "O CASTRO 1", "OLEGARIO RODRIGUEZ GALLOSA", "OLEGARIO RODRIGUEZ GALLOSA 17",
-
-  "OLEGARIO RODRIGUEZ GALLOSA 67", "OLEGARIO RODRIGUEZ GALLOSA 101", "OUTEIRO", "OUTEIRO 5", "OUTEIRO 8",
-  "PETELOS", "PETELOS 5", "PETELOS 7", "PETELOS 8 CAMIÑO DO RIO", "PETELOS 31",
-
-  "PETELOS 134", "PONTELLAS", "PONTELLAS 2A", "PONTELLAS 5", "PONTELLAS 8",
-  "PONTELLAS 25", "PONTELLAS SHALOM", "PONTENOVA", "PONTENOVA 1", "PONTENOVA 8",
-
-  "PONTENOVA 40", "PUXEIROS", "PUXEIROS 15 GENEROSO DOMINGUEZ", "PUXEIROS 18 CAMIÑO DO COUTO", "PUXEIROS 31",
-  "RELBA", "RELBA 3", "RELBA 5", "RELBA 17", "RELBA 21B",
-
-  "RELBA 42", "RIAL", "RIAL 4", "RIAL 8", "ROCHA",
-  "ROCHA 15", "ROCHA 20", "ROCHA 86", "ROCHA 94", "SANTA MARTA",
-
-  "SANTA MARTA 4", "SANTA MARTA 14", "SILVAREIRA", "SILVAREIRA 7 PEREIRAS", "TAMEIGA",
-  "TAMEIGA 7", "TAMEIGA 28 CAMIÑO IGLESIA", "TAMEIGA 35 RANS", "TAMEIGA 158", "VAQUERIA",
-
-  "VAQUERIA 33", "VEIGADAÑA", "VEIGADAÑA 24", "VILAFRIA", "VILAFRIA 24"
+"A GANDARA","A GANDARA 49","ALVARIN","ALVARIN 42","ALVARIN 42 A",
+"AMIEIROLONGO","AMIEIROLONGO 45","ANGOAL","ANGOAL 8","ARROTEA",
+"ARROTEA 9A","ARROTEA 12A","ARROTEA 17A","ARROTEA 25","ARROTEA 49",
+"BALOUTAS","BALOUTAS 52","BOSENDE","BOSENDE 9","BUDIÑO",
+"BUDIÑO 1D","BUDIÑO 7 EIRIS","BUDIÑO LA CRUZ 31A",
+"CAMIÑO BUDIELA","CAMIÑO BUDIELA 10","CAMIÑO DA BARXA",
+"CAMIÑO DA BARXA 5","CAMIÑO DA BARXA 7","CAMIÑO DE ROSALINO",
+"CAMIÑO DE ROSALINO 16","CAMIÑO DO PINAL","CAMIÑO DO PINAL 32",
+"CAMIÑO DO QUINTEIRO","CAMIÑO DO QUINTEIRO 2","CAMIÑO DO ROXO",
+"CAMIÑO DO ROXO 25","CAMIÑO SANTA MARINA","CAMIÑO SANTA MARINA 5",
+"CAMIÑO VELLO DE SANTIAGO","CAMIÑO VELLO DE SANTIAGO 24",
+"CARBON","CARBON 12","CARRACIDO","CARRACIDO 27",
+"CARRETERA REDONDELA","CARRETERA REDONDELA 2","CARRETERA REDONDELA 19",
+"CARRETERA REDONDELA 161","CARRETERA SANGUIÑEDA",
+"CARRETERA SANGUIÑEDA 1","CARRETERA SANGUIÑEDA 6",
+"CASAL","CASAL 14 BUDIÑO","CONTRASTO","CONTRASTO 1",
+"CONTRASTO 46","CONTRASTO 532","COVELO","COVELO 1","COVELO 58",
+"CRISTO DO AGRO","CRISTO DO AGRO 13","EIDOS","EIDOS 47",
+"EIDOS DO MEDIO","EIDOS DO MEDIO 2","LUGAR A LEVADA",
+"LUGAR A LEVADA 22","MALLADOURA","MALLADOURA 25",
+"MOSENDE","MOSENDE 1","MOSENDE 7","MOSENDE 16",
+"NOVAL","NOVAL 3","O CASTRO","O CASTRO 1",
+"OLEGARIO RODRIGUEZ GALLOSA","OLEGARIO RODRIGUEZ GALLOSA 17",
+"OLEGARIO RODRIGUEZ GALLOSA 67","OLEGARIO RODRIGUEZ GALLOSA 101",
+"OUTEIRO","OUTEIRO 5","OUTEIRO 8","PETELOS","PETELOS 5",
+"PETELOS 7","PETELOS 8 CAMIÑO DO RIO","PETELOS 31","PETELOS 134",
+"PONTELLAS","PONTELLAS 2A","PONTELLAS 5","PONTELLAS 8",
+"PONTELLAS 25","PONTELLAS SHALOM","PONTENOVA","PONTENOVA 1",
+"PONTENOVA 8","PONTENOVA 40","PUXEIROS",
+"PUXEIROS 15 GENEROSO DOMINGUEZ","PUXEIROS 18 CAMIÑO DO COUTO",
+"PUXEIROS 31","RELBA","RELBA 3","RELBA 5","RELBA 17",
+"RELBA 21B","RELBA 42","RIAL","RIAL 4","RIAL 8",
+"ROCHA","ROCHA 15","ROCHA 20","ROCHA 86","ROCHA 94",
+"SANTA MARTA","SANTA MARTA 4","SANTA MARTA 14",
+"SILVAREIRA","SILVAREIRA 7 PEREIRAS","TAMEIGA",
+"TAMEIGA 7","TAMEIGA 28 CAMIÑO IGLESIA","TAMEIGA 35 RANS",
+"TAMEIGA 158","VAQUERIA","VAQUERIA 33","VEIGADAÑA",
+"VEIGADAÑA 24","VILAFRIA","VILAFRIA 24"
 ];
 
-/* ESTADO */
+/* ===== ESTADO ===== */
 let state={drivers:[],logs:[],zonas:[]};
 if(localStorage.getItem(LS_KEY)){ try{state=JSON.parse(localStorage.getItem(LS_KEY));}catch{} }
 if(!state.zonas) state.zonas=[];
@@ -147,18 +150,18 @@ const now=Date.now();
 state.logs=state.logs.filter(l=>now-l.time<=KEEP_DAYS*24*60*60*1000);
 save();
 
-/* UTILS */
+/* ===== UTILS ===== */
 function save(){ localStorage.setItem(LS_KEY,JSON.stringify(state)); }
 function esc(s){ return s.replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])); }
 function msToTime(ms){ const s=Math.floor(ms/1000), m=Math.floor(s/60), h=Math.floor(m/60); return `${h}h ${m%60}m ${s%60}s`; }
 function calcAverageMsForZona(z){ const r=state.logs.filter(l=>l.zona===z).slice(-AVG_LAST); if(!r.length) return null; return Math.round(r.reduce((a,b)=>a+b.duration,0)/r.length); }
 
-/* DRIVERS */
+/* ===== DRIVERS ===== */
 function addDriver(){ if(!newName.value.trim()) return; state.drivers.push({name:newName.value,start:null,elapsed:0,running:false,zona:""}); newName.value=""; save(); renderDrivers(); refreshDriverFilter(); }
 function removeDriver(i){ if(prompt("PIN")!==PIN)return; state.drivers.splice(i,1); save(); renderDrivers(); refreshDriverFilter(); }
 function renderDrivers(){ drivers.innerHTML=""; state.drivers.forEach((d,i)=>{ const elapsed=d.running?d.elapsed+(Date.now()-d.start):d.elapsed; const avg=d.zona?calcAverageMsForZona(d.zona):null; const late=avg&&elapsed>avg; drivers.innerHTML+=`<div class="driver"><b>${esc(d.name)}</b><br>Zona: ${esc(d.zona||"-")}<div class="timeRow"><div class="bigTime ${late?'late':''}">⏱ ${msToTime(elapsed)}</div><div class="smallTime">${avg?'Tmp.medio: '+msToTime(avg):''}</div></div><button class="${d.running?'stop':'start'}" onclick="toggleDriverModal(${i})">${d.running?'Parar':'Iniciar'}</button> <button class="danger mini" onclick="removeDriver(${i})">❌</button></div>`; }); }
 
-/* MODAL */
+/* ===== MODAL ===== */
 let currentDriverIndex=null;
 const modal=document.getElementById("zonaModal");
 const modalInput=document.getElementById("modalZonaInput");
@@ -177,96 +180,90 @@ function toggleDriverModal(i){
 }
 
 function openModal(i){
-  currentDriverIndex = i;
-  modal.style.display = "flex";       
-  renderKeyboard();                    
-  modalInput.value = "";               
-  modalInput.focus();                  
-  renderModalSuggest();                
+  currentDriverIndex=i;
+  modal.style.display="flex";
+  renderKeyboard();
+  modalInput.value="";
+  modalInput.focus();
+  renderModalSuggest();
 }
 
 function closeModal(){ modal.style.display="none"; currentDriverIndex=null; }
 
 modalInput.addEventListener('input', ()=>{
-    const q = modalInput.value.trim().toLowerCase();
-    if(!q){ modalSuggest.style.display='none'; modalSuggest.innerHTML=''; return; }
-    const matches = state.zonas.filter(z=>z.toLowerCase().startsWith(q));
-    if(matches.length===0){ modalSuggest.style.display='none'; modalSuggest.innerHTML=''; return; }
-    modalSuggest.innerHTML = matches.map(z=>`<div onclick="modalInput.value='${esc(z)}'; modalSuggest.style.display='none';">${esc(z)}</div>`).join("");
-    modalSuggest.style.display='block';
+  const q=modalInput.value.trim().toLowerCase();
+  if(!q){ modalSuggest.style.display='none'; modalSuggest.innerHTML=''; return; }
+  const matches=state.zonas.filter(z=>z.toLowerCase().startsWith(q));
+  if(!matches.length){ modalSuggest.style.display='none'; modalSuggest.innerHTML=''; return; }
+  modalSuggest.innerHTML=matches.map(z=>`<div onclick="modalInput.value='${esc(z)}'; modalSuggest.style.display='none';">${esc(z)}</div>`).join("");
+  modalSuggest.style.display='block';
 });
 
-function acceptZona(){ 
-  const d=state.drivers[currentDriverIndex]; 
-  if(!modalInput.value.trim()){ alert("Escribe zona"); return; } 
-  d.zona=modalInput.value.trim(); d.running=true; d.start=Date.now(); d.elapsed=0; 
-  if(!state.zonas.some(z=>z.toLowerCase()===d.zona.toLowerCase())) state.zonas.push(d.zona); 
-  save(); renderDrivers(); closeModal(); 
+function acceptZona(){
+  const d=state.drivers[currentDriverIndex];
+  if(!modalInput.value.trim()){ alert("Escribe zona"); return; }
+  d.zona=modalInput.value.trim();
+  d.running=true;
+  d.start=Date.now();
+  d.elapsed=0;
+  if(!state.zonas.some(z=>z.toLowerCase()===d.zona.toLowerCase())) state.zonas.push(d.zona);
+  save(); renderDrivers(); closeModal();
 }
 
-/* TECLADO QWERTY ORDENADO */
+/* ===== TECLADO ===== */
 function renderKeyboard(){
-    const kb=document.getElementById("modalKeyboard");
-    kb.innerHTML="";
-    const rows=["1234567890","QWERTYUIOP","ASDFGHJKLÑ","ZXCVBNM"];
-    rows.forEach(r=>{
-        const rowDiv=document.createElement("div");
-        r.split("").forEach(k=>{
-            const b=document.createElement("button");
-            b.textContent=k;
-            b.onclick=()=>{ modalInput.value+=k; modalInput.dispatchEvent(new Event("input")); };
-            rowDiv.appendChild(b);
-        });
-        kb.appendChild(rowDiv);
+  const kb=document.getElementById("modalKeyboard");
+  kb.innerHTML="";
+  const rows=["1234567890","QWERTYUIOP","ASDFGHJKLÑ","ZXCVBNM"];
+  rows.forEach(r=>{
+    const rowDiv=document.createElement("div");
+    r.split("").forEach(k=>{
+      const b=document.createElement("button");
+      b.textContent=k;
+      b.onclick=()=>{ modalInput.value+=k; modalInput.dispatchEvent(new Event("input")); };
+      rowDiv.appendChild(b);
     });
-    const lastRow=document.createElement("div");
-    const space=document.createElement("button");
-    space.textContent="Espacio"; space.style.minWidth="100px";
-    space.onclick=()=>{ modalInput.value+=" "; modalInput.dispatchEvent(new Event("input")); };
-    lastRow.appendChild(space);
-    const back=document.createElement("button");
-    back.textContent="⌫"; back.style.minWidth="60px";
-    back.onclick=()=>{ modalInput.value=modalInput.value.slice(0,-1); modalInput.dispatchEvent(new Event("input")); };
-    lastRow.appendChild(back);
-    kb.appendChild(lastRow);
+    kb.appendChild(rowDiv);
+  });
+  const last=document.createElement("div");
+  const space=document.createElement("button");
+  space.textContent="Espacio"; space.style.minWidth="100px";
+  space.onclick=()=>{ modalInput.value+=" "; modalInput.dispatchEvent(new Event("input")); };
+  last.appendChild(space);
+  const back=document.createElement("button");
+  back.textContent="⌫"; back.style.minWidth="60px";
+  back.onclick=()=>{ modalInput.value=modalInput.value.slice(0,-1); modalInput.dispatchEvent(new Event("input")); };
+  last.appendChild(back);
+  kb.appendChild(last);
 }
 
-/* PANEL ZONAS */
+/* ===== PANEL ZONAS ===== */
 function openZonaPanel(){ if(prompt("PIN")!==PIN)return; zonaPanel.style.display="block"; renderZonaPanel(); }
 function closeZonaPanel(){ zonaPanel.style.display="none"; }
 function renderZonaPanel(){
-  const q = document.getElementById("zonaSearch").value.trim().toLowerCase();
+  const q=zonaSearch.value.trim().toLowerCase();
   zonaList.innerHTML="";
   state.zonas.forEach((z,i)=>{
     if(q && !z.toLowerCase().includes(q)) return;
-    zonaList.innerHTML+=`
-      <div class="zona-row" style="margin-bottom:4px;">
-        <input value="${esc(z)}" onchange="state.zonas[${i}]=this.value; save();">
-        <button onclick="state.zonas.splice(${i},1); save(); renderZonaPanel()">🗑</button>
-      </div>`;
+    zonaList.innerHTML+=`<div style="margin-bottom:4px;"><input value="${esc(z)}" onchange="state.zonas[${i}]=this.value; save();"><button onclick="state.zonas.splice(${i},1); save(); renderZonaPanel()">🗑</button></div>`;
   });
 }
 
-/* HISTORIAL */
-function refreshDriverFilter(){ filterDriver.innerHTML='<option value="">Todos los repartidores</option>'; state.drivers.forEach(d=>filterDriver.innerHTML+=`<option>${esc(d.name)}</option>`); }
+/* ===== HISTORIAL ===== */
+function refreshDriverFilter(){ filterDriver.innerHTML='<option value="">Todos</option>'; state.drivers.forEach(d=>filterDriver.innerHTML+=`<option>${esc(d.name)}</option>`); }
 function clearFilters(){ filterDriver.value=""; filterDate.value=""; renderLogs(); }
-function deleteLog(i){ if(prompt("PIN para eliminar registro:")!==PIN)return alert("PIN incorrecto."); state.logs.splice(i,1); save(); renderLogs(); renderDrivers(); }
+function deleteLog(i){ if(prompt("PIN para eliminar registro:")!==PIN)return; state.logs.splice(i,1); save(); renderLogs(); renderDrivers(); }
 
 function renderLogs(){
-    let list=[...state.logs];
-    if(filterDriver.value) list=list.filter(l=>l.name===filterDriver.value);
-    if(filterDate.value){ const d=new Date(filterDate.value); list=list.filter(l=>new Date(l.time).toDateString()===d.toDateString()); }
-    const logsHTML=list.slice(-50).reverse().map((l,idx)=>{
-        return `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9em; margin-bottom:2px;">
-                    <span>${new Date(l.time).toLocaleString()} — ${esc(l.name)} — ${esc(l.zona)} — ${msToTime(l.duration)}</span>
-                    <span style="color:red; cursor:pointer; font-size:0.8em;" onclick="deleteLog(${state.logs.indexOf(l)})">❌</span>
-                </div>`;
-    }).join("");
-    logs.innerHTML = logsHTML || "<em>Sin registros</em>";
+  let list=[...state.logs];
+  if(filterDriver.value) list=list.filter(l=>l.name===filterDriver.value);
+  if(filterDate.value){ const d=new Date(filterDate.value); list=list.filter(l=>new Date(l.time).toDateString()===d.toDateString()); }
+  logs.innerHTML=list.slice(-50).reverse().map(l=>`<div style="display:flex;justify-content:space-between;font-size:0.9em;"><span>${new Date(l.time).toLocaleString()} — ${esc(l.name)} — ${esc(l.zona)} — ${msToTime(l.duration)}</span><span style="color:red;cursor:pointer;" onclick="deleteLog(${state.logs.indexOf(l)})">❌</span></div>`).join("")||"<em>Sin registros</em>";
 }
 
 /* INIT */
 renderDrivers(); renderLogs(); refreshDriverFilter(); setInterval(renderDrivers,1000);
 </script>
+
 </body>
 </html>
